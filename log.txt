@@ -1,0 +1,20 @@
+Logger started up.
+[Debug] This is a debug message.
+[Error] This is an error message.
+[Debug] i=0, j=0
+[Debug] i=0, j=1
+[Debug] i=0, j=2
+[Debug] i=0, j=3
+[Debug] i=0, j=4
+[Debug] i=1, j=0
+[Debug] i=1, j=1
+[Debug] i=1, j=2
+[Debug] i=1, j=3
+[Error] Illegal state detected! i=1, j=3
+[Debug] i=1, j=4
+[Debug] i=2, j=0
+[Debug] i=2, j=1
+[Debug] i=2, j=2
+[Debug] i=2, j=3
+[Debug] i=2, j=4
+Logger shutting down.
