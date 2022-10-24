@@ -17,6 +17,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 public class Main {
     private static final int NUM_REQUESTS = 100;
     private static String URL_STR = "http://feature.isri.cmu.edu:3003/";
@@ -25,7 +28,7 @@ public class Main {
     private static void runWebAPIRequest() throws IOException, InterruptedException {
         // read the request body
         String bodyStr = new String(Files.readAllBytes(Paths.get("src/main/resources/request-body.json")));
-        String key = ""; // TODO: fill in your key here
+        String key = "319bb8a92ca44df6ae4c6efa400d5b8e"; // TODO: fill in your key here
         HttpRequest request = HttpRequest.newBuilder(
                 URI.create("https://api.clarifai.com/v2/models/bd367be194cf45149e75f01d59f77ba7/outputs"))
             .header("Authorization", "Key " + key)
@@ -33,7 +36,22 @@ public class Main {
             .POST(HttpRequest.BodyPublishers.ofString(bodyStr))
             .build();
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        // System.out.println(response.body());
+        System.out.println("original response in JSON format: \n" + response.body());
+
+        // parse json
+        JSONObject obj = new JSONObject(response.body());
+        JSONArray arr = obj.getJSONArray("outputs")
+        .getJSONObject(0)
+        .getJSONObject("data")
+        .getJSONArray("concepts");
+        System.out.println("\n\nTop5 results with probability:");
+        for (int i = 0; i < 5; i++)
+        {
+            String name = arr.getJSONObject(i).getString("name");
+            Double value = arr.getJSONObject(i).getDouble("value");
+            System.out.printf("%s: %f\n", name, value);
+        }
+        
     }
 
     /**
