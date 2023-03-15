@@ -28,7 +28,7 @@ public class Main {
     private static void runWebAPIRequest() throws IOException, InterruptedException {
         // read the request body
         String bodyStr = new String(Files.readAllBytes(Paths.get("src/main/resources/request-body.json")));
-        String key = ""; // TODO: fill in your PAT here
+        String key = "1721f804b6a84426ac711ce221ec1ea9"; // TODO: fill in your PAT here
         HttpRequest request = HttpRequest.newBuilder(
             URI.create(REQ_URI))
             .header("Authorization", "Key " + key)
@@ -91,7 +91,7 @@ public class Main {
         Instant start = Instant.now();
 
         CompletableFuture<HttpResponse<String>> responseFuture = client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
-        // observe when this statement is printed out to the console. 
+        // observe when this statement is printed out to the console.
         responseFuture.thenRun(() -> System.out.println("do other things after finished..."));
         System.out.println("do other things...");
         HttpResponse<String> response = responseFuture.join();
@@ -116,6 +116,9 @@ public class Main {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         client = HttpClient.newBuilder().executor(executorService).build();
 
+        List<CompletableFuture<HttpResponse<String>>> allFutures = new ArrayList<>(100);
+        Semaphore parallelRequestCounter = new Semaphore(10);
+
         Instant start = Instant.now();
         /**
          * TODO task 2:
@@ -126,16 +129,29 @@ public class Main {
          * 4. for each element in the list, use join() to get the HttpResponse<String>
          */
 
+        for (int i = 0; i < NUM_REQUESTS; i++) {
+            parallelRequestCounter.acquire();
+            CompletableFuture<HttpResponse<String>> responseFuture = client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
+//            responseFuture.thenAccept(System.out::println);
+            responseFuture.thenRun(() -> parallelRequestCounter.release());
+            allFutures.add(responseFuture);
+        }
+
+        List<HttpResponse<String>> results = new ArrayList<>(100);
+        for (CompletableFuture<HttpResponse<String>> future : allFutures) {
+            results.add(future.join());
+        }
+
         System.out.println("Total time async (ms): " + Duration.between(start, Instant.now()).toMillis());
     }
 
     public static void main(String[] args) throws IOException, InterruptedException, ExecutionException {
         // Task 1
-        runWebAPIRequest();
+        // runWebAPIRequest();
         // Task 2
-    //    runMultipleSynchronous();
+       runMultipleSynchronous();
     //    runSingleAsync();
-    //    runMultipleAsynchronous();
+       runMultipleAsynchronous();
         System.exit(0);
     }
 }
